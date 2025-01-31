@@ -1,20 +1,41 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import * as React from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createStackNavigator } from '@react-navigation/stack';
+import HomeScreen from './screens/HomeScreen';
+import AddBookScreen from './screens/AddBookScreen';
+import BookDetailsScreen from './screens/BookDetailsScreen';
+
+// Buat Stack Navigator untuk HomeScreen dan BookDetailsScreen
+const HomeStack = createStackNavigator();
+
+const HomeStackScreen = () => {
+  return (
+    <HomeStack.Navigator>
+      <HomeStack.Screen
+        name="Home"
+        component={HomeScreen}
+        options={{ headerShown: false }} // Sembunyikan header di HomeScreen
+      />
+      <HomeStack.Screen
+        name="BookDetailsScreen"
+        component={BookDetailsScreen}
+        options={{ title: 'Book Details' }} // Atur judul header untuk BookDetailsScreen
+      />
+    </HomeStack.Navigator>
+  );
+};
+// Buat Bottom Tab Navigator
+const Tab = createBottomTabNavigator();
 
 export default function App() {
   return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <NavigationContainer>
+      <Tab.Navigator>
+        {/* Ganti HomeScreen dengan HomeStackScreen */}
+        <Tab.Screen name="Home" component={HomeStackScreen} />
+        <Tab.Screen name="Add Book" component={AddBookScreen} />
+      </Tab.Navigator>
+    </NavigationContainer>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
