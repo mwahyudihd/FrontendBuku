@@ -1,25 +1,33 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { getBukuList } from '../grpcClient';
 
 const HomeScreen = () => {
   const navigation = useNavigation();
-  const [books, setBooks] = useState([
-    { id: '1', title: '1984', author: 'George Orwell', penerbit: 'Gramedia', tahun_terbit: '2000', harga: 'Rp 100.000', stok: '10' },
-    { id: '2', title: 'To Kill a Mockingbird', author: 'Harper Lee', penerbit: 'Gramedia', tahun_terbit: '2020', harga: 'Rp 50.000', stok: '10' },
-    { id: '3', title: 'The Great Gatsby', author: 'F. Scott Fitzgerald', penerbit: 'Gramedia', tahun_terbit: '2021', harga: 'Rp 50.000', stok: '10' },
-  ]);
+  const [books, setBooks] = useState([]);
+
+  useEffect(() => {
+    getBukuList()
+      .then((data) => {
+        console.log(data);
+        
+        setBooks(data.bukuList || []);
+      })
+      .catch((error) => {
+        console.error('Error fetching books:', error);
+      });
+  }, []);
 
   const renderItem = ({ item }) => (
     <TouchableOpacity
       style={styles.item}
-      onPress={() => navigation.navigate('BookDetailsScreen', { book: item })} // Pastikan nama ini sesuai
+      onPress={() => navigation.navigate('BookDetailsScreen', { book: item })}
     >
-      <Text style={styles.title}>{item.title}</Text>
-      <Text>{item.author}</Text>
+      <Text style={styles.title}>{item.judul}</Text>
+      <Text>{item.penulis}</Text>
     </TouchableOpacity>
   );
-  
 
   return (
     <View style={styles.container}>
@@ -28,28 +36,18 @@ const HomeScreen = () => {
         <FlatList
           data={books}
           renderItem={renderItem}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => item.idBuku.toString()}
         />
       </View>
     </View>
   );
 };
 
+// Styles tetap sama
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f8f8f8',
-  },
-  header: {
-    height: 50,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  headerTitle: {
-    fontSize: 18,
   },
   content: {
     padding: 20,
@@ -70,20 +68,6 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 20,
-  },
-  footer: {
-    position: 'absolute',
-    bottom: 0,
-    width: '100%',
-    height: 50,
-    backgroundColor: '#fff',
-    borderTopWidth: 1,
-    borderTopColor: '#ddd',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  footerText: {
-    fontSize: 12,
   },
 });
 
