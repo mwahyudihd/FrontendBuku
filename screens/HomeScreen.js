@@ -1,36 +1,67 @@
-import React, { useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import React, { useState, useEffect } from 'react';
+import { 
+  View, 
+  Text, 
+  FlatList, 
+  TouchableOpacity, 
+  StyleSheet, 
+  ActivityIndicator 
+} from 'react-native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 
-const HomeScreen = () => {
+const HomeScreen = ({ route }) => {
   const navigation = useNavigation();
-  const [books, setBooks] = useState([
-    { id: '1', title: '1984', author: 'George Orwell', penerbit: 'Gramedia', tahun_terbit: '2000', harga: 'Rp 100.000', stok: '10' },
-    { id: '2', title: 'To Kill a Mockingbird', author: 'Harper Lee', penerbit: 'Gramedia', tahun_terbit: '2020', harga: 'Rp 50.000', stok: '10' },
-    { id: '3', title: 'The Great Gatsby', author: 'F. Scott Fitzgerald', penerbit: 'Gramedia', tahun_terbit: '2021', harga: 'Rp 50.000', stok: '10' },
-  ]);
+  const [books, setBooks] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchBooks = () => {
+    setLoading(true);
+    fetch('https://grpc.tech-ai.my.id/buku')
+      .then(response => response.json())
+      .then(data => {
+        setBooks(data);
+        setLoading(false);
+      })
+      .catch(error => {
+        console.error('Error fetching books:', error);
+        setLoading(false);
+      });
+  };
+
+  useEffect(() => {
+    fetchBooks();
+  }, []);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchBooks();
+    }, [route])
+  );
 
   const renderItem = ({ item }) => (
     <TouchableOpacity
-      style={styles.item}
-      onPress={() => navigation.navigate('BookDetailsScreen', { book: item })} // Pastikan nama ini sesuai
+      style={styles.card}
+      onPress={() => navigation.navigate('BookDetailsScreen', { book: item })}
+      activeOpacity={0.7}
     >
-      <Text style={styles.title}>{item.title}</Text>
-      <Text>{item.author}</Text>
+      <Text style={styles.title}>{item.judul}</Text>
+      <Text style={styles.author}>{item.penulis}</Text>
     </TouchableOpacity>
   );
-  
 
   return (
     <View style={styles.container}>
-      <View style={styles.content}>
-        <Text style={styles.welcomeText}>Welcome</Text>
+      <Text style={styles.header}>📚 Daftar Buku</Text>
+      {loading ? (
+        <ActivityIndicator size="large" color="#6200ea" />
+      ) : (
         <FlatList
           data={books}
           renderItem={renderItem}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => item.id.toString()}
+          contentContainerStyle={styles.list}
         />
-      </View>
+      )}
     </View>
   );
 };
@@ -38,52 +69,39 @@ const HomeScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f8f8',
+    backgroundColor: '#f5f5f5',
+    padding: 20,
   },
   header: {
-    height: 50,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  headerTitle: {
-    fontSize: 18,
-  },
-  content: {
-    padding: 20,
-  },
-  welcomeText: {
     fontSize: 24,
-    color: '#333',
-    marginBottom: 10,
+    fontWeight: 'bold',
+    color: '#6200ea',
+    marginBottom: 20,
+    textAlign: 'center',
   },
-  item: {
+  list: {
+    paddingBottom: 20,
+  },
+  card: {
+    backgroundColor: '#ffffff',
     padding: 20,
     marginVertical: 8,
-    marginHorizontal: 16,
-    backgroundColor: '#fff',
-    borderRadius: 5,
-    borderWidth: 1,
-    borderColor: '#ddd',
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
   },
   title: {
-    fontSize: 20,
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
   },
-  footer: {
-    position: 'absolute',
-    bottom: 0,
-    width: '100%',
-    height: 50,
-    backgroundColor: '#fff',
-    borderTopWidth: 1,
-    borderTopColor: '#ddd',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  footerText: {
-    fontSize: 12,
+  author: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 5,
   },
 });
 

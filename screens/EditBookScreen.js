@@ -1,63 +1,56 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView } from 'react-native';
 
-const AddBookScreen = ({ navigation }) => {
-  const [judul, setJudul] = useState('');
-  const [penulis, setPenulis] = useState('');
-  const [penerbit, setPenerbit] = useState('');
-  const [tahunTerbit, setTahunTerbit] = useState('');
-  const [harga, setHarga] = useState('');
-  const [stok, setStok] = useState('');
+const EditBookScreen = ({ route, navigation }) => {
+  const { book } = route.params;
 
-  const addBook = () => {
+  // State untuk menyimpan data buku yang akan diedit
+  const [judul, setJudul] = useState(book.judul);
+  const [penulis, setPenulis] = useState(book.penulis);
+  const [penerbit, setPenerbit] = useState(book.penerbit);
+  const [tahunTerbit, setTahunTerbit] = useState(book.tahunTerbit.toString());
+  const [harga, setHarga] = useState(book.harga.toString());
+  const [stok, setStok] = useState(book.stok.toString());
+
+  const updateBook = () => {
     if (!judul || !penulis || !penerbit || !tahunTerbit || !harga || !stok) {
       Alert.alert('Error', 'Semua bidang harus diisi!');
       return;
     }
 
-    const newBook = { 
-      judul, 
-      penulis, 
-      penerbit, 
-      tahunTerbit: parseInt(tahunTerbit), 
-      harga: parseFloat(harga), 
-      stok: parseInt(stok) 
+    const updatedBook = {
+      judul,
+      penulis,
+      penerbit,
+      tahunTerbit: parseInt(tahunTerbit),
+      harga: parseFloat(harga),
+      stok: parseInt(stok),
     };
 
-    fetch('https://grpc.tech-ai.my.id/buku', {
-      method: 'POST',
+    fetch(`https://grpc.tech-ai.my.id/buku/${book.id}`, {
+      method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(newBook),
+      body: JSON.stringify(updatedBook),
     })
       .then(response => {
         if (!response.ok) {
-          throw new Error('Gagal menambahkan buku');
+          throw new Error('Gagal mengupdate buku');
         }
         return response.json();
       })
       .then(data => {
-        Alert.alert('Sukses', `Buku "${data.judul}" berhasil ditambahkan`);
-        
-        // Reset input setelah berhasil menambahkan buku
-        setJudul('');
-        setPenulis('');
-        setPenerbit('');
-        setTahunTerbit('');
-        setHarga('');
-        setStok('');
-
-        // Kembali ke Home dan refresh data
-        navigation.navigate('Home', { refresh: true });
+        Alert.alert('Sukses', `Buku "${data.judul}" berhasil diperbarui`);
+        navigation.navigate('Home', { refresh: true }); // Kembali ke Home & refresh data
       })
       .catch(error => {
-        console.error('Error adding book:', error);
-        Alert.alert('Error', 'Gagal menambahkan buku');
+        console.error('Error updating book:', error);
+        Alert.alert('Error', 'Gagal mengupdate buku');
       });
   };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Tambah Buku Baru</Text>
+      <Text style={styles.title}>Edit Buku</Text>
 
       <TextInput style={styles.input} placeholder="Judul" value={judul} onChangeText={setJudul} />
       <TextInput style={styles.input} placeholder="Penulis" value={penulis} onChangeText={setPenulis} />
@@ -66,8 +59,8 @@ const AddBookScreen = ({ navigation }) => {
       <TextInput style={styles.input} placeholder="Harga" keyboardType="numeric" value={harga} onChangeText={setHarga} />
       <TextInput style={styles.input} placeholder="Stok" keyboardType="numeric" value={stok} onChangeText={setStok} />
 
-      <TouchableOpacity style={styles.addButton} onPress={addBook}>
-        <Text style={styles.addButtonText}>➕ Tambah Buku</Text>
+      <TouchableOpacity style={styles.saveButton} onPress={updateBook}>
+        <Text style={styles.saveButtonText}>💾 Simpan Perubahan</Text>
       </TouchableOpacity>
     </ScrollView>
   );
@@ -101,19 +94,19 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
-  addButton: {
-    backgroundColor: '#28a745',
+  saveButton: {
+    backgroundColor: '#6200ea',
     padding: 15,
     borderRadius: 10,
     alignItems: 'center',
     width: '100%',
     marginTop: 10,
   },
-  addButtonText: {
+  saveButtonText: {
     color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',
   },
 });
 
-export default AddBookScreen;
+export default EditBookScreen;
